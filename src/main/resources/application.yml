@@ -1,0 +1,6 @@
+spring:
+  application.name: streaming-statistics
+
+title:
+  vote: titlevote
+  rating: titlerating

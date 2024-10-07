@@ -111,7 +111,7 @@ public class RankingProcessor {
                   rankingAggregate.getVoteCountPerTitle(),
                   minimumVotesRequired);
               log.info("rankingAggregate={}", rankingAggregate);
-              return rankingAggregate.getVoteCountTotal() > minimumVotesRequired;
+              return rankingAggregate.getVoteCountPerTitle() > minimumVotesRequired;
             },
             Named.as("MORE_THAN_THRESHOLD_VOTES_RANKING_TABLE"),
             Materialized.with(Serdes.String(), rankingAggregateSerde))

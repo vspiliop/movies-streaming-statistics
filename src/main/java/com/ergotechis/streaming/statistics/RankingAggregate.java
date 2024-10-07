@@ -7,8 +7,11 @@ import lombok.extern.jackson.Jacksonized;
 @Builder(toBuilder = true)
 @Data
 @Jacksonized
-public class Vote {
-  long rating;
+public class RankingAggregate {
+  float ratingAveragePerTitle;
+  long voteCountPerTitle;
+  long voteCountTotal;
   String titleId;
-  long currentTotalVotesCounter;
+  float ranking;
+  long titleIdCount;
 }

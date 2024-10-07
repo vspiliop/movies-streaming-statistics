@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Properties;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyValue;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.kafka.support.serializer.JsonSerde;
 
+@Slf4j
 public class TitleVotes2RatingsProcessorTest {
 
   private TitleVotes2RatingsProcessor processor;
@@ -56,7 +58,11 @@ public class TitleVotes2RatingsProcessorTest {
       inputTopic.pipeInput(Vote.builder().titleId("tt0000002").rating(10).build());
 
       // then
-      assertThat(outputTopic.readKeyValuesToList())
+      List<KeyValue<String, RatingAverageVoteCount>> streamOfAverageCounts =
+          outputTopic.readKeyValuesToList();
+      log.info("v={}", streamOfAverageCounts);
+
+      assertThat(streamOfAverageCounts)
           .containsAll(
               List.of(
                   KeyValue.pair(
@@ -65,6 +71,7 @@ public class TitleVotes2RatingsProcessorTest {
                           .titleId("tt0000001")
                           .voteCount(2)
                           .ratingAverage(75)
+                          .currentTotalVotesCounter(3)
                           .build()),
                   KeyValue.pair(
                       "tt0000002",
@@ -72,6 +79,7 @@ public class TitleVotes2RatingsProcessorTest {
                           .titleId("tt0000002")
                           .voteCount(3)
                           .ratingAverage(4.3333335f)
+                          .currentTotalVotesCounter(5)
                           .build())));
     }
   }

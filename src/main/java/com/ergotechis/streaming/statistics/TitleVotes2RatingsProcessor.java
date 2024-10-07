@@ -9,6 +9,9 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.kstream.Repartitioned;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.StoreBuilder;
+import org.apache.kafka.streams.state.Stores;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.support.serializer.JsonSerde;
@@ -18,15 +21,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class TitleVotes2RatingsProcessor {
 
+  public static final String TOTAL_VOTES_COUNTER_STORE = "totalVotesCounterStore";
   private final String titleVoteTopic;
-
   private final String titleRatingTopic;
-
   private final JsonSerde<Vote> voteSerde = new JsonSerde<>(Vote.class);
-
   private final JsonSerde<RatingSumVoteCount> ratingSumVoteCountJsonSerde =
       new JsonSerde<>(RatingSumVoteCount.class);
-
   private final JsonSerde<RatingAverageVoteCount> ratingAverageVoteCountSerde =
       new JsonSerde<>(RatingAverageVoteCount.class);
 
@@ -37,8 +37,18 @@ public class TitleVotes2RatingsProcessor {
     this.titleRatingTopic = titleRatingTopic;
   }
 
+  @SuppressWarnings("deprecation")
   @Autowired
   void buildPipeline(StreamsBuilder streamsBuilder) {
+
+    StoreBuilder<KeyValueStore<String, Long>> totalVotesCounterStoreBuilder =
+        Stores.keyValueStoreBuilder(
+            Stores.persistentKeyValueStore(TOTAL_VOTES_COUNTER_STORE),
+            Serdes.String(),
+            Serdes.Long());
+
+    streamsBuilder.addStateStore(totalVotesCounterStoreBuilder);
+
     KStream<String, Vote> messageStream =
         streamsBuilder.stream(titleVoteTopic, Consumed.with(Serdes.String(), voteSerde));
 
@@ -46,6 +56,8 @@ public class TitleVotes2RatingsProcessor {
         .selectKey((__, vote) -> vote.titleId)
         .repartition(Repartitioned.with(Serdes.String(), voteSerde))
         .peek((key, vote) -> log.info("Vote={}, with key={}", vote, key))
+        .transformValues(
+            () -> new TotalVotesCounter(TOTAL_VOTES_COUNTER_STORE), TOTAL_VOTES_COUNTER_STORE)
         .groupByKey(Grouped.keySerde(Serdes.String()))
         .aggregate(
             () -> RatingSumVoteCount.builder().build(),
@@ -54,6 +66,7 @@ public class TitleVotes2RatingsProcessor {
                     .ratingSum(ratingSumVoteCount.ratingSum + vote.rating)
                     .voteCount(ratingSumVoteCount.voteCount + 1)
                     .titleId(vote.titleId)
+                    .currentTotalNumberOfVotes(vote.currentTotalVotesCounter)
                     .build(),
             Materialized.with(Serdes.String(), ratingSumVoteCountJsonSerde))
         .toStream()
@@ -61,6 +74,7 @@ public class TitleVotes2RatingsProcessor {
             ratingSumVoteCount ->
                 RatingAverageVoteCount.builder()
                     .titleId(ratingSumVoteCount.titleId)
+                    .currentTotalVotesCounter(ratingSumVoteCount.currentTotalNumberOfVotes)
                     .ratingAverage(
                         (float) ratingSumVoteCount.ratingSum / ratingSumVoteCount.voteCount)
                     .voteCount(ratingSumVoteCount.voteCount)

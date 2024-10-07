@@ -11,4 +11,5 @@ public class RatingSumVoteCount {
   long ratingSum;
   long voteCount;
   String titleId;
+  long currentTotalNumberOfVotes;
 }

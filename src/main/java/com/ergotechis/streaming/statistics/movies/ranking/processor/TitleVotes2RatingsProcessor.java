@@ -80,7 +80,8 @@ public class TitleVotes2RatingsProcessor {
                     .titleId(ratingSumVoteCount.getTitleId())
                     .currentTotalVotesCounter(ratingSumVoteCount.getCurrentTotalNumberOfVotes())
                     .ratingAverage(
-                        (float) ratingSumVoteCount.getRatingSum() / ratingSumVoteCount.getVoteCount())
+                        (float) ratingSumVoteCount.getRatingSum()
+                            / ratingSumVoteCount.getVoteCount())
                     .voteCount(ratingSumVoteCount.getVoteCount())
                     .build())
         .to(titleRatingTopic, Produced.with(Serdes.String(), ratingAverageVoteCountSerde));

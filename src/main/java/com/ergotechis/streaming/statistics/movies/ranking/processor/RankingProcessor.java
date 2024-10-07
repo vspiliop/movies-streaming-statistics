@@ -38,7 +38,8 @@ public class RankingProcessor {
   private final JsonSerde<RankingAggregate> rankingAggregateSerde =
       new JsonSerde<>(RankingAggregate.class);
 
-  private final JsonSerde<Top10RatedMovies> top10MoviesSerde = new JsonSerde<>(Top10RatedMovies.class);
+  private final JsonSerde<Top10RatedMovies> top10MoviesSerde =
+      new JsonSerde<>(Top10RatedMovies.class);
 
   public RankingProcessor(
       @Value(value = "${title.rating}") String titleRatingTopic,

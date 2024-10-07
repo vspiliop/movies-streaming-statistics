@@ -4,3 +4,4 @@ spring:
 title:
   vote: titlevote
   rating: titlerating
+  ranking: titleranking

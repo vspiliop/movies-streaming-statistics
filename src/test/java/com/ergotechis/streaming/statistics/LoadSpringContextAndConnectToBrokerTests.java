@@ -12,7 +12,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-@SpringBootTest
+@SpringBootTest(classes = com.ergotechis.streaming.statistics.StreamingStatisticsApplication.class)
 @Testcontainers
 class LoadSpringContextAndConnectToBrokerTests {
 

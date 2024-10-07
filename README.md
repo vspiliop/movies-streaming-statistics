@@ -1,4 +1,4 @@
 # Getting Started
 
-- Install Java 17
-- Run `./mvnw test` from home directory
+- Install Java 17.
+- Run `./mvnw test` from project root directory.

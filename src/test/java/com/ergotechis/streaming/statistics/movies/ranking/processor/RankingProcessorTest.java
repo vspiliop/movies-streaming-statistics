@@ -1,12 +1,8 @@
 package com.ergotechis.streaming.statistics.movies.ranking.processor;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.ergotechis.streaming.statistics.movies.ranking.model.RankingAggregate;
 import com.ergotechis.streaming.statistics.movies.ranking.model.RatingAverageVoteCount;
 import com.ergotechis.streaming.statistics.movies.ranking.model.Top10RatedMovies;
-import java.util.List;
-import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -18,6 +14,11 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.kafka.support.serializer.JsonSerde;
+
+import java.util.List;
+import java.util.Properties;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 public class RankingProcessorTest {
@@ -35,7 +36,7 @@ public class RankingProcessorTest {
   }
 
   @Test
-  void calculateTop2RatedMoviesInRankingDescendingOrder() {
+  void calculateTopPerformingMoviesInTermsOfDefinedRanking() {
 
     // given
     StreamsBuilder streamsBuilder = new StreamsBuilder();

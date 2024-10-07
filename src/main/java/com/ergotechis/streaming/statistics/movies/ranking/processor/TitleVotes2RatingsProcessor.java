@@ -1,5 +1,9 @@
-package com.ergotechis.streaming.statistics;
+package com.ergotechis.streaming.statistics.movies.ranking.processor;
 
+import com.ergotechis.streaming.statistics.movies.ranking.model.RatingAverageVoteCount;
+import com.ergotechis.streaming.statistics.movies.ranking.model.RatingSumVoteCount;
+import com.ergotechis.streaming.statistics.movies.ranking.model.Vote;
+import com.ergotechis.streaming.statistics.movies.ranking.transformer.TotalVotesCounter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -39,7 +43,7 @@ public class TitleVotes2RatingsProcessor {
 
   @SuppressWarnings("deprecation")
   @Autowired
-  void buildPipeline(StreamsBuilder streamsBuilder) {
+  public void buildPipeline(StreamsBuilder streamsBuilder) {
 
     StoreBuilder<KeyValueStore<String, Long>> totalVotesCounterStoreBuilder =
         Stores.keyValueStoreBuilder(
@@ -53,7 +57,7 @@ public class TitleVotes2RatingsProcessor {
         streamsBuilder.stream(titleVoteTopic, Consumed.with(Serdes.String(), voteSerde));
 
     messageStream
-        .selectKey((__, vote) -> vote.titleId)
+        .selectKey((__, vote) -> vote.getTitleId())
         .repartition(Repartitioned.with(Serdes.String(), voteSerde))
         .peek((key, vote) -> log.info("Vote={}, with key={}", vote, key))
         .transformValues(
@@ -63,21 +67,21 @@ public class TitleVotes2RatingsProcessor {
             () -> RatingSumVoteCount.builder().build(),
             (__, vote, ratingSumVoteCount) ->
                 ratingSumVoteCount.toBuilder()
-                    .ratingSum(ratingSumVoteCount.ratingSum + vote.rating)
-                    .voteCount(ratingSumVoteCount.voteCount + 1)
-                    .titleId(vote.titleId)
-                    .currentTotalNumberOfVotes(vote.currentTotalVotesCounter)
+                    .ratingSum(ratingSumVoteCount.getRatingSum() + vote.getRating())
+                    .voteCount(ratingSumVoteCount.getVoteCount() + 1)
+                    .titleId(vote.getTitleId())
+                    .currentTotalNumberOfVotes(vote.getCurrentTotalVotesCounter())
                     .build(),
             Materialized.with(Serdes.String(), ratingSumVoteCountJsonSerde))
         .toStream()
         .mapValues(
             ratingSumVoteCount ->
                 RatingAverageVoteCount.builder()
-                    .titleId(ratingSumVoteCount.titleId)
-                    .currentTotalVotesCounter(ratingSumVoteCount.currentTotalNumberOfVotes)
+                    .titleId(ratingSumVoteCount.getTitleId())
+                    .currentTotalVotesCounter(ratingSumVoteCount.getCurrentTotalNumberOfVotes())
                     .ratingAverage(
-                        (float) ratingSumVoteCount.ratingSum / ratingSumVoteCount.voteCount)
-                    .voteCount(ratingSumVoteCount.voteCount)
+                        (float) ratingSumVoteCount.getRatingSum() / ratingSumVoteCount.getVoteCount())
+                    .voteCount(ratingSumVoteCount.getVoteCount())
                     .build())
         .to(titleRatingTopic, Produced.with(Serdes.String(), ratingAverageVoteCountSerde));
   }

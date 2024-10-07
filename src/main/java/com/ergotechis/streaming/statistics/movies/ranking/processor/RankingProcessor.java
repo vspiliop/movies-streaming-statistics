@@ -1,5 +1,9 @@
-package com.ergotechis.streaming.statistics;
+package com.ergotechis.streaming.statistics.movies.ranking.processor;
 
+import com.ergotechis.streaming.statistics.movies.ranking.model.RankingAggregate;
+import com.ergotechis.streaming.statistics.movies.ranking.model.RatingAverageVoteCount;
+import com.ergotechis.streaming.statistics.movies.ranking.model.Top10RatedMovies;
+import com.ergotechis.streaming.statistics.movies.ranking.transformer.CountUniqueTitles;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
@@ -47,7 +51,7 @@ public class RankingProcessor {
 
   @SuppressWarnings("deprecation")
   @Autowired
-  void buildPipeline(StreamsBuilder streamsBuilder) {
+  public void buildPipeline(StreamsBuilder streamsBuilder) {
 
     StoreBuilder<KeyValueStore<String, String>> titleStoreBuilder =
         Stores.keyValueStoreBuilder(
@@ -77,11 +81,11 @@ public class RankingProcessor {
             () -> RankingAggregate.builder().build(),
             (key, newRatingAverageVoteCount, rankingAggregate) ->
                 rankingAggregate.toBuilder()
-                    .titleId(newRatingAverageVoteCount.titleId)
-                    .ratingAveragePerTitle(newRatingAverageVoteCount.ratingAverage)
-                    .voteCountPerTitle(newRatingAverageVoteCount.voteCount)
-                    .titleIdCount(newRatingAverageVoteCount.titleIdCount)
-                    .voteCountTotal(newRatingAverageVoteCount.currentTotalVotesCounter)
+                    .titleId(newRatingAverageVoteCount.getTitleId())
+                    .ratingAveragePerTitle(newRatingAverageVoteCount.getRatingAverage())
+                    .voteCountPerTitle(newRatingAverageVoteCount.getVoteCount())
+                    .titleIdCount(newRatingAverageVoteCount.getTitleIdCount())
+                    .voteCountTotal(newRatingAverageVoteCount.getCurrentTotalVotesCounter())
                     .build(),
             (key, oldRatingAverageVoteCount, rankingAggregate) -> rankingAggregate,
             Materialized.with(Serdes.String(), rankingAggregateSerde))
@@ -89,7 +93,7 @@ public class RankingProcessor {
         .mapValues(
             rankingAggregate -> {
               float averageNumberOfVotesPerTitle =
-                  (float) rankingAggregate.voteCountTotal / rankingAggregate.titleIdCount;
+                  (float) rankingAggregate.getVoteCountTotal() / rankingAggregate.getTitleIdCount();
               return rankingAggregate.toBuilder()
                   .ranking(
                       ((float) rankingAggregate.getVoteCountPerTitle()
@@ -103,10 +107,10 @@ public class RankingProcessor {
             (__, rankingAggregate) -> {
               log.info(
                   "Is rankingAggregate.voteCountTotal={} > minimumVotesRequired={}",
-                  rankingAggregate.voteCountPerTitle,
+                  rankingAggregate.getVoteCountPerTitle(),
                   minimumVotesRequired);
               log.info("rankingAggregate={}", rankingAggregate);
-              return rankingAggregate.voteCountTotal > minimumVotesRequired;
+              return rankingAggregate.getVoteCountTotal() > minimumVotesRequired;
             },
             Named.as("MORE_THAN_THRESHOLD_VOTES_RANKING_TABLE"),
             Materialized.with(Serdes.String(), rankingAggregateSerde))

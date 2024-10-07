@@ -1,5 +1,6 @@
-package com.ergotechis.streaming.statistics;
+package com.ergotechis.streaming.statistics.movies.ranking.transformer;
 
+import com.ergotechis.streaming.statistics.movies.ranking.model.RatingAverageVoteCount;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.streams.kstream.ValueTransformer;
 import org.apache.kafka.streams.processor.ProcessorContext;

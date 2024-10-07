@@ -2,6 +2,10 @@ package com.ergotechis.streaming.statistics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.ergotechis.streaming.statistics.movies.ranking.model.RankingAggregate;
+import com.ergotechis.streaming.statistics.movies.ranking.model.RatingAverageVoteCount;
+import com.ergotechis.streaming.statistics.movies.ranking.model.Top10RatedMovies;
+import com.ergotechis.streaming.statistics.movies.ranking.processor.RankingProcessor;
 import java.util.List;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;

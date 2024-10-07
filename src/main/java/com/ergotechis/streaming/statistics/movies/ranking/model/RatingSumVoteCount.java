@@ -1,4 +1,4 @@
-package com.ergotechis.streaming.statistics;
+package com.ergotechis.streaming.statistics.movies.ranking.model;
 
 import lombok.Builder;
 import lombok.Data;

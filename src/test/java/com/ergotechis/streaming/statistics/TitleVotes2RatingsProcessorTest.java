@@ -4,6 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Properties;
+
+import com.ergotechis.streaming.statistics.movies.ranking.model.RatingAverageVoteCount;
+import com.ergotechis.streaming.statistics.movies.ranking.model.Vote;
+import com.ergotechis.streaming.statistics.movies.ranking.processor.TitleVotes2RatingsProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;

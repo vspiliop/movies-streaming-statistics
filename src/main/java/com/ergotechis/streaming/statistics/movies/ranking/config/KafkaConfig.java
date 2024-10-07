@@ -1,4 +1,4 @@
-package com.ergotechis.streaming.statistics.config;
+package com.ergotechis.streaming.statistics.movies.ranking.config;
 
 import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;

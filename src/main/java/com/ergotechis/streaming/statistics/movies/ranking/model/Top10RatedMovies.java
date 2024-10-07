@@ -1,4 +1,4 @@
-package com.ergotechis.streaming.statistics;
+package com.ergotechis.streaming.statistics.movies.ranking.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;

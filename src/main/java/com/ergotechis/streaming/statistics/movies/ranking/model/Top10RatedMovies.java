@@ -13,7 +13,14 @@ public class Top10RatedMovies {
 
   @EqualsAndHashCode.Include
   private final TreeSet<RankingAggregate> top10RatedMoviesSorted =
-      new TreeSet<>((o1, o2) -> (int) (o2.getRanking() - o1.getRanking()));
+      new TreeSet<>(
+          (o1, o2) -> {
+            int compareRanking = (int) (o2.getRanking() - o1.getRanking());
+            if (compareRanking != 0) {
+              return compareRanking;
+            }
+            return o1.getTitleId().compareTo(o2.getTitleId());
+          });
 
   public void add(RankingAggregate newValue) {
     top10RatedMoviesSorted.add(newValue);

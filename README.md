@@ -5,3 +5,12 @@
   - Run `sdk install java 22.0.2-oracle` to install Java
 - Install latest Docker Desktop
 - Run `./mvnw clean test` from project root directory
+
+# What it does
+
+Calculates in a streaming fashion the top 10 rated movies,with a minimum of 500 votes, based on the following rating function:
+
+`(numVotes/averageNumberOfVotes) * averageRating`
+
+- Source topic: vote (where individual votes are published)
+- Sink topic: ratings (where the current top10Movies are published)

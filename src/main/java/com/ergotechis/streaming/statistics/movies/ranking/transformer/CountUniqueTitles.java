@@ -26,13 +26,13 @@ public class CountUniqueTitles
 
   @Override
   public RatingAverageVoteCount transform(RatingAverageVoteCount ratingAverageVoteCount) {
-    String exists = this.titleStore.get(ratingAverageVoteCount.getTitleId());
+    String exists = this.titleStore.get(ratingAverageVoteCount.titleId());
     Long newValue = this.counterStore.get(COUNTER_KEY);
 
     if (exists == null) {
       newValue =
           this.counterStore.get(COUNTER_KEY) == null ? 1 : this.counterStore.get(COUNTER_KEY) + 1;
-      this.titleStore.put(ratingAverageVoteCount.getTitleId(), "");
+      this.titleStore.put(ratingAverageVoteCount.titleId(), "");
       this.counterStore.put(COUNTER_KEY, newValue);
     }
 

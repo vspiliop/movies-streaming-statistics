@@ -57,7 +57,7 @@ public class TitleVotes2RatingsProcessor {
         streamsBuilder.stream(titleVoteTopic, Consumed.with(Serdes.String(), voteSerde));
 
     messageStream
-        .selectKey((__, vote) -> vote.getTitleId())
+        .selectKey((__, vote) -> vote.titleId())
         .repartition(Repartitioned.with(Serdes.String(), voteSerde))
         .peek((key, vote) -> log.info("Vote={}, with key={}", vote, key))
         .transformValues(
@@ -67,22 +67,21 @@ public class TitleVotes2RatingsProcessor {
             () -> RatingSumVoteCount.builder().build(),
             (__, vote, ratingSumVoteCount) ->
                 ratingSumVoteCount.toBuilder()
-                    .ratingSum(ratingSumVoteCount.getRatingSum() + vote.getRating())
-                    .voteCount(ratingSumVoteCount.getVoteCount() + 1)
-                    .titleId(vote.getTitleId())
-                    .currentTotalNumberOfVotes(vote.getCurrentTotalVotesCounter())
+                    .ratingSum(ratingSumVoteCount.ratingSum() + vote.rating())
+                    .voteCount(ratingSumVoteCount.voteCount() + 1)
+                    .titleId(vote.titleId())
+                    .currentTotalNumberOfVotes(vote.currentTotalVotesCounter())
                     .build(),
             Materialized.with(Serdes.String(), ratingSumVoteCountJsonSerde))
         .toStream()
         .mapValues(
             ratingSumVoteCount ->
                 RatingAverageVoteCount.builder()
-                    .titleId(ratingSumVoteCount.getTitleId())
-                    .currentTotalVotesCounter(ratingSumVoteCount.getCurrentTotalNumberOfVotes())
+                    .titleId(ratingSumVoteCount.titleId())
+                    .currentTotalVotesCounter(ratingSumVoteCount.currentTotalNumberOfVotes())
                     .ratingAverage(
-                        (float) ratingSumVoteCount.getRatingSum()
-                            / ratingSumVoteCount.getVoteCount())
-                    .voteCount(ratingSumVoteCount.getVoteCount())
+                        (float) ratingSumVoteCount.ratingSum() / ratingSumVoteCount.voteCount())
+                    .voteCount(ratingSumVoteCount.voteCount())
                     .build())
         .to(titleRatingTopic, Produced.with(Serdes.String(), ratingAverageVoteCountSerde));
   }

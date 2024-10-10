@@ -30,7 +30,7 @@ public class RankingProcessor {
   private static final String COUNTER_STORE = "counterStore";
   private final String titleRatingTopic;
   private final String titleRankingTopic;
-  private long minimumVotesRequired;
+  private final long minimumVotesRequired;
 
   private final JsonSerde<RatingAverageVoteCount> ratingAverageVoteCountSerde =
       new JsonSerde<>(RatingAverageVoteCount.class);
@@ -82,11 +82,11 @@ public class RankingProcessor {
             () -> RankingAggregate.builder().build(),
             (key, newRatingAverageVoteCount, rankingAggregate) ->
                 rankingAggregate.toBuilder()
-                    .titleId(newRatingAverageVoteCount.getTitleId())
-                    .ratingAveragePerTitle(newRatingAverageVoteCount.getRatingAverage())
-                    .voteCountPerTitle(newRatingAverageVoteCount.getVoteCount())
-                    .titleIdCount(newRatingAverageVoteCount.getTitleIdCount())
-                    .voteCountTotal(newRatingAverageVoteCount.getCurrentTotalVotesCounter())
+                    .titleId(newRatingAverageVoteCount.titleId())
+                    .ratingAveragePerTitle(newRatingAverageVoteCount.ratingAverage())
+                    .voteCountPerTitle(newRatingAverageVoteCount.voteCount())
+                    .titleIdCount(newRatingAverageVoteCount.titleIdCount())
+                    .voteCountTotal(newRatingAverageVoteCount.currentTotalVotesCounter())
                     .build(),
             (key, oldRatingAverageVoteCount, rankingAggregate) -> rankingAggregate,
             Materialized.with(Serdes.String(), rankingAggregateSerde))
@@ -94,12 +94,11 @@ public class RankingProcessor {
         .mapValues(
             rankingAggregate -> {
               float averageNumberOfVotesPerTitle =
-                  (float) rankingAggregate.getVoteCountTotal() / rankingAggregate.getTitleIdCount();
+                  (float) rankingAggregate.voteCountTotal() / rankingAggregate.titleIdCount();
               return rankingAggregate.toBuilder()
                   .ranking(
-                      ((float) rankingAggregate.getVoteCountPerTitle()
-                              / averageNumberOfVotesPerTitle)
-                          * rankingAggregate.getRatingAveragePerTitle())
+                      ((float) rankingAggregate.voteCountPerTitle() / averageNumberOfVotesPerTitle)
+                          * rankingAggregate.ratingAveragePerTitle())
                   .build();
             },
             Named.as("RANKING_TABLE"),
@@ -107,11 +106,11 @@ public class RankingProcessor {
         .filter(
             (__, rankingAggregate) -> {
               log.info(
-                  "Is rankingAggregate.voteCountTotal={} > minimumVotesRequired={}",
-                  rankingAggregate.getVoteCountPerTitle(),
+                  "Is rankingAggregate.voteCountPerTitle={} > minimumVotesRequired={}",
+                  rankingAggregate.voteCountPerTitle(),
                   minimumVotesRequired);
               log.info("rankingAggregate={}", rankingAggregate);
-              return rankingAggregate.getVoteCountPerTitle() > minimumVotesRequired;
+              return rankingAggregate.voteCountPerTitle() > minimumVotesRequired;
             },
             Named.as("MORE_THAN_THRESHOLD_VOTES_RANKING_TABLE"),
             Materialized.with(Serdes.String(), rankingAggregateSerde))

@@ -1,6 +1,7 @@
 package com.ergotechis.streaming.statistics.movies.ranking.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.TreeSet;
 import lombok.EqualsAndHashCode;
@@ -15,11 +16,11 @@ public class Top10RatedMovies {
   private final TreeSet<RankingAggregate> top10RatedMoviesSorted =
       new TreeSet<>(
           (o1, o2) -> {
-            int compareRanking = (int) (o2.getRanking() - o1.getRanking());
+            int compareRanking = (int) (o2.ranking() - o1.ranking());
             if (compareRanking != 0) {
               return compareRanking;
             }
-            return o1.getTitleId().compareTo(o2.getTitleId());
+            return o1.titleId().compareTo(o2.titleId());
           });
 
   public void add(RankingAggregate newValue) {
@@ -39,9 +40,9 @@ public class Top10RatedMovies {
     return objectMapper.writeValueAsString(top10RatedMoviesSorted);
   }
 
-  @SneakyThrows
   @JsonProperty("top10RatedMoviesSorted")
-  public void setTop10RatedMoviesSorted(String top10RatedMoviesSorted) {
+  public void setTop10RatedMoviesSorted(String top10RatedMoviesSorted)
+      throws JsonProcessingException {
     RankingAggregate[] top10RatedMovies =
         objectMapper.readValue(top10RatedMoviesSorted, RankingAggregate[].class);
     for (RankingAggregate i : top10RatedMovies) {

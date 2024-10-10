@@ -80,7 +80,7 @@ public class RankingProcessor {
         // keeps the latest ratings statistics per titleId
         .aggregate(
             () -> RankingAggregate.builder().build(),
-            (key, newRatingAverageVoteCount, rankingAggregate) ->
+            (_, newRatingAverageVoteCount, rankingAggregate) ->
                 rankingAggregate.toBuilder()
                     .titleId(newRatingAverageVoteCount.titleId())
                     .ratingAveragePerTitle(newRatingAverageVoteCount.ratingAverage())
@@ -88,7 +88,7 @@ public class RankingProcessor {
                     .titleIdCount(newRatingAverageVoteCount.titleIdCount())
                     .voteCountTotal(newRatingAverageVoteCount.currentTotalVotesCounter())
                     .build(),
-            (key, oldRatingAverageVoteCount, rankingAggregate) -> rankingAggregate,
+            (_, _, rankingAggregate) -> rankingAggregate,
             Materialized.with(Serdes.String(), rankingAggregateSerde))
         // calculates rankings for each title
         .mapValues(
@@ -104,7 +104,7 @@ public class RankingProcessor {
             Named.as("RANKING_TABLE"),
             Materialized.with(Serdes.String(), rankingAggregateSerde))
         .filter(
-            (__, rankingAggregate) -> {
+            (_, rankingAggregate) -> {
               log.info(
                   "Is rankingAggregate.voteCountPerTitle={} > minimumVotesRequired={}",
                   rankingAggregate.voteCountPerTitle(),
@@ -115,15 +115,15 @@ public class RankingProcessor {
             Named.as("MORE_THAN_THRESHOLD_VOTES_RANKING_TABLE"),
             Materialized.with(Serdes.String(), rankingAggregateSerde))
         .groupBy(
-            (__, rankingAggregate) -> KeyValue.pair("COMMON-STATIC-KEY", rankingAggregate),
+            (_, rankingAggregate) -> KeyValue.pair("COMMON-STATIC-KEY", rankingAggregate),
             Grouped.with(Serdes.String(), rankingAggregateSerde))
         .aggregate(
             Top10RatedMovies::new,
-            (key, newRankingAggregate, top10RatedMoviesAggregate) -> {
+            (_, newRankingAggregate, top10RatedMoviesAggregate) -> {
               top10RatedMoviesAggregate.add(newRankingAggregate);
               return top10RatedMoviesAggregate;
             },
-            (key, oldRankingAggregate, top10RatedMoviesAggregate) -> {
+            (_, oldRankingAggregate, top10RatedMoviesAggregate) -> {
               top10RatedMoviesAggregate.remove(oldRankingAggregate);
               return top10RatedMoviesAggregate;
             },

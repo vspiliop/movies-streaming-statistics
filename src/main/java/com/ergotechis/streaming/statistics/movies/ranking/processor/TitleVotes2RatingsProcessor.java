@@ -57,7 +57,7 @@ public class TitleVotes2RatingsProcessor {
         streamsBuilder.stream(titleVoteTopic, Consumed.with(Serdes.String(), voteSerde));
 
     messageStream
-        .selectKey((__, vote) -> vote.titleId())
+        .selectKey((_, vote) -> vote.titleId())
         .repartition(Repartitioned.with(Serdes.String(), voteSerde))
         .peek((key, vote) -> log.info("Vote={}, with key={}", vote, key))
         .transformValues(
@@ -65,7 +65,7 @@ public class TitleVotes2RatingsProcessor {
         .groupByKey(Grouped.keySerde(Serdes.String()))
         .aggregate(
             () -> RatingSumVoteCount.builder().build(),
-            (__, vote, ratingSumVoteCount) ->
+            (_, vote, ratingSumVoteCount) ->
                 ratingSumVoteCount.toBuilder()
                     .ratingSum(ratingSumVoteCount.ratingSum() + vote.rating())
                     .voteCount(ratingSumVoteCount.voteCount() + 1)

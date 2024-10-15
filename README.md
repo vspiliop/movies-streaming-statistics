@@ -8,7 +8,7 @@
 
 # What it does
 
-Calculates in a streaming fashion the current top 10 rated movies, with a minimum of 500 votes, based on the following rating function:
+Calculates in a streaming fashion (via [Kafka Streams](https://kafka.apache.org/38/documentation/streams/)) the current top 10 rated movies, with a minimum of 500 votes, based on the following rating function:
 
 `(numVotes/averageNumberOfVotes) * averageRating`
 

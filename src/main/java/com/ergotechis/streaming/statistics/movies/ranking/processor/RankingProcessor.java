@@ -129,6 +129,7 @@ public class RankingProcessor {
             },
             Materialized.with(Serdes.String(), top10MoviesSerde))
         .toStream()
+        .peek((_, ranking) -> log.info("Generating a ranking={}", ranking))
         .to(titleRankingTopic, Produced.with(Serdes.String(), top10MoviesSerde));
   }
 }

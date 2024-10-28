@@ -1,13 +1,8 @@
 package com.ergotechis.streaming.statistics;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.ergotechis.streaming.statistics.movies.ranking.model.RatingAverageVoteCount;
 import com.ergotechis.streaming.statistics.movies.ranking.model.Top10RatedMovies;
 import com.ergotechis.streaming.statistics.movies.ranking.model.Vote;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,11 +22,17 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 @SpringBootTest
 @Testcontainers
 @ActiveProfiles("test")
 @Slf4j
-class LoadSpringContextAndConnectToBrokerTests {
+class End2EndTests {
 
   @Container
   private static final KafkaContainer KAFKA =
@@ -59,7 +60,7 @@ class LoadSpringContextAndConnectToBrokerTests {
 
   @Test
   @DisplayName("Given ratings calculate the top 10 currently rated movies in descending order")
-  void end2endTest() {
+  void happyPath() {
     // given
     var votes =
         List.of(
